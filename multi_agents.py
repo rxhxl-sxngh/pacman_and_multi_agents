@@ -78,7 +78,23 @@ class ReflexAgent(Agent):
         new_scared_times = [ghost_state.scared_timer for ghost_state in new_ghost_states]
 
         "*** YOUR CODE HERE ***"
-        return successor_game_state.get_score()
+        # Convert food positions to a list for easier manipulation
+        new_food_list = new_food.as_list()
+
+        # Calculate the distance to the nearest food pellet
+        min_food_dist = float("inf")
+        for food_pos in new_food_list:
+            food_dist = manhattan_distance(new_pos, food_pos)
+            min_food_dist = min(min_food_dist, food_dist)
+
+        # Check if Pacman will collide with any ghost
+        for ghost_pos in successor_game_state.get_ghost_positions():
+            if manhattan_distance(new_pos, ghost_pos) < 2:
+                return -float('inf')
+
+        # Return the combined score with emphasis on minimizing distance to food
+        return successor_game_state.get_score() + 1.0/min_food_dist
+        # return successor_game_state.get_score()
 
 def score_evaluation_function(current_game_state):
     """
