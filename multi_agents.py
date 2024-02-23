@@ -199,8 +199,7 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
         return self.maximize(game_state, 0, 0, -float("inf"), float("inf"))[0]
 
     def alpha_beta(self, game_state, agent_index, depth, alpha, beta):
-        if depth == self.depth * game_state.get_num_agents() \
-                or game_state.is_lose() or game_state.is_win():
+        if depth == self.depth * game_state.get_num_agents() or game_state.is_lose() or game_state.is_win():
             return self.evaluation_function(game_state)
         if agent_index == 0:
             return self.maximize(game_state, agent_index, depth, alpha, beta)[1]
