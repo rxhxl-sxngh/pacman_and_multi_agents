@@ -78,10 +78,10 @@ class ReflexAgent(Agent):
         new_scared_times = [ghost_state.scared_timer for ghost_state in new_ghost_states]
 
         "*** YOUR CODE HERE ***"
-        # Convert food positions to a list for easier manipulation
+        # Convert food positions to a list using the as_list method that was used in the previous assignment (pa1)
         new_food_list = new_food.as_list()
 
-        # Calculate the distance to the nearest food pellet
+        # Calculate the distance to the nearest food
         min_food_dist = float("inf")
         for food_pos in new_food_list:
             food_dist = manhattan_distance(new_pos, food_pos)
@@ -92,7 +92,7 @@ class ReflexAgent(Agent):
             if manhattan_distance(new_pos, ghost_pos) < 2:
                 return -float('inf')
 
-        # Return the combined score with emphasis on minimizing distance to food
+        # Return the combined score (with the reciprocal) to minimize the distance to food
         return successor_game_state.get_score() + 1.0/min_food_dist
         # return successor_game_state.get_score()
 
@@ -149,7 +149,42 @@ class MinimaxAgent(MultiAgentSearchAgent):
             Returns the total number of agents in the game
         """
         "*** YOUR CODE HERE ***"
-        util.raise_not_defined()
+        def maximize(state, depth):
+            if depth == 0 or state.is_win() or state.is_lose():
+                return self.evaluation_function(state), None
+
+            best_value = float('-inf')
+            best_action = None
+            legal_actions = state.get_legal_actions(0)  # Pacman's legal actions
+            for action in legal_actions:
+                successor_state = state.generate_successor(0, action)
+                value, _ = minimize(successor_state, depth, 1)  # Call the minimizer for the next ghost
+                if value > best_value:
+                    best_value = value
+                    best_action = action
+            return best_value, best_action
+
+        def minimize(state, depth, ghost_index):
+            if depth == 0 or state.is_win() or state.is_lose():
+                return self.evaluation_function(state), None
+
+            best_value = float('inf')
+            best_action = None
+            legal_actions = state.get_legal_actions(ghost_index)
+            for action in legal_actions:
+                successor_state = state.generate_successor(ghost_index, action)
+                if ghost_index == state.get_num_agents() - 1:  # Last ghost
+                    value, _ = maximize(successor_state, depth - 1)  # Call the maximizer for Pacman
+                else:
+                    value, _ = minimize(successor_state, depth, ghost_index + 1)  # Call the minimizer for the next ghost
+                if value < best_value:
+                    best_value = value
+                    best_action = action
+            return best_value, best_action
+
+        _, action = maximize(game_state, self.depth)
+        return action
+        # util.raise_not_defined()
 
 class AlphaBetaAgent(MultiAgentSearchAgent):
     """
@@ -161,7 +196,39 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
           Returns the minimax action using self.depth and self.evaluation_function
         """
         "*** YOUR CODE HERE ***"
-        util.raise_not_defined()
+        def minimax(game_state, depth, agent_index):
+            if depth == 0 or game_state.is_win() or game_state.is_lose():
+                return self.evaluation_function(game_state)
+
+            legal_actions = game_state.get_legal_actions(agent_index)
+            if agent_index == 0:  # Pacman's turn (maximize)
+                best_value = float("-inf")
+                for action in legal_actions:
+                    successor_state = game_state.generate_successor(agent_index, action)
+                    value = minimax(successor_state, depth - 1, agent_index + 1)
+                    best_value = max(best_value, value)
+                return best_value
+            else:  # Ghosts' turn (minimize)
+                best_value = float("inf")
+                next_agent_index = (agent_index + 1) % game_state.get_num_agents()
+                for action in legal_actions:
+                    successor_state = game_state.generate_successor(agent_index, action)
+                    value = minimax(successor_state, depth, next_agent_index)
+                    best_value = min(best_value, value)
+                return best_value
+
+        # Call the minimax function for Pacman's turn
+        legal_actions = game_state.get_legal_actions(0)
+        best_action = None
+        best_value = float("-inf")
+        for action in legal_actions:
+            successor_state = game_state.generate_successor(0, action)
+            value = minimax(successor_state, self.depth, 1)
+            if value > best_value:
+                best_value = value
+                best_action = action
+        return best_action
+        # util.raise_not_defined()
 
 class ExpectimaxAgent(MultiAgentSearchAgent):
     """
