@@ -248,7 +248,42 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
           legal moves.
         """
         "*** YOUR CODE HERE ***"
-        util.raise_not_defined()
+        max_depth = self.depth * game_state.get_num_agents()
+        return self.expectimax(game_state, "expect", max_depth, 0)[0]
+
+    def expectimax(self, game_state, action, depth, agent_index):
+        if depth == 0 or game_state.is_lose() or game_state.is_win():
+            return (action, self.evaluation_function(game_state))
+
+        if agent_index == 0:
+            return self.max_value(game_state, action, depth, agent_index)
+        else:
+            return self.exp_value(game_state, action, depth, agent_index)
+
+    def max_value(self, game_state, action, depth, agent_index):
+        best_action = ("max", -(float('inf')))
+        for legal_action in game_state.get_legal_actions(agent_index):
+            next_agent = (agent_index + 1) % game_state.get_num_agents()
+            if depth != self.depth * game_state.get_num_agents():
+                successor_action = action
+            else:
+                successor_action = legal_action
+            successor_value = self.expectimax(game_state.generate_successor(agent_index, legal_action),
+                                               successor_action, depth - 1, next_agent)
+            best_action = max(best_action, successor_value, key=lambda x: x[1])
+        return best_action
+
+    def exp_value(self, game_state, action, depth, agent_index):
+        legal_actions = game_state.get_legal_actions(agent_index)
+        average_score = 0
+        probability = 1.0 / len(legal_actions)
+        for legal_action in legal_actions:
+            next_agent = (agent_index + 1) % game_state.get_num_agents()
+            best_action = self.expectimax(game_state.generate_successor(agent_index, legal_action),
+                                          action, depth - 1, next_agent)
+            average_score += best_action[1] * probability
+        return (action, average_score)
+        # util.raise_not_defined()
 
 def better_evaluation_function(current_game_state):
     """
