@@ -75,7 +75,6 @@ class ReflexAgent(Agent):
         new_pos = successor_game_state.get_pacman_position()
         new_food = successor_game_state.get_food()
         new_ghost_states = successor_game_state.get_ghost_states()
-        new_scared_times = [ghost_state.scared_timer for ghost_state in new_ghost_states]
 
         "*** YOUR CODE HERE ***"
         # Convert food positions to a list using the as_list method that was used in the previous assignment (pa1)
@@ -292,9 +291,48 @@ def better_evaluation_function(current_game_state):
       evaluation function (question 5).
 
       DESCRIPTION: <write something here so we know what you did>
+      Based on the hints in the problem statement (picking important features and adding them based on how important I think they are), 
+      I have used the following features:
+      1. The reciprocal of the distance to the nearest food pellet
+      2. The game score
+      3. The number of remaining food pellets
+      4. The number of remaining capsules
+      5. The average distance to the nearest ghost
     """
     "*** YOUR CODE HERE ***"
-    util.raise_not_defined()
+    # Setup information to be used as arguments in evaluation function
+    # Extracting information from the game state
+    pacman_position = current_game_state.get_pacman_position()
+    ghost_positions = current_game_state.get_ghost_positions()
+    food_list = current_game_state.get_food().as_list()
+    capsules = current_game_state.get_capsules()
+    game_score = current_game_state.get_score()
+
+    # Calculating distances
+    food_count = len(food_list)
+    capsule_count = len(capsules)
+    closest_food = min(manhattan_distance(pacman_position, food_position) for food_position in food_list) if food_list else 1
+    
+    # Check if Pacman will collide with any ghost and forget about the food
+    for ghost_position in ghost_positions:
+        ghost_distance = manhattan_distance(pacman_position, ghost_position)
+        if ghost_distance < 2:
+            closest_food = 999999
+            break
+          
+    # Calculating average distance to the nearest ghost
+    if ghost_positions:
+        average_ghost_distance = sum(manhattan_distance(pacman_position, ghost_position) for ghost_position in ghost_positions) / len(ghost_positions)
+    else:
+        average_ghost_distance =  0
+
+    # Weighted features
+    features = [1.0 / closest_food, game_score, food_count, capsule_count, average_ghost_distance]
+    importance = [2, 10, -10, -5, -5]
+
+    # Calculate the weighted sum of features
+    return sum(feature * weight for feature, weight in zip(features, importance))
+    # util.raise_not_defined()
 
 # Abbreviation
 better = better_evaluation_function
