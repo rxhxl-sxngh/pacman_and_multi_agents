@@ -198,40 +198,40 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
         "*** YOUR CODE HERE ***"
         return self.maximize(game_state, 0, 0, -float("inf"), float("inf"))[0]
 
-    def alpha_beta(self, game_state, agent_Index, depth, alpha, beta):
-        if depth is self.depth * game_state.get_num_agents() \
+    def alpha_beta(self, game_state, agent_index, depth, alpha, beta):
+        if depth == self.depth * game_state.get_num_agents() \
                 or game_state.is_lose() or game_state.is_win():
             return self.evaluation_function(game_state)
-        if agent_Index is 0:
-            return self.maximize(game_state, agent_Index, depth, alpha, beta)[1]
+        if agent_index == 0:
+            return self.maximize(game_state, agent_index, depth, alpha, beta)[1]
         else:
-            return self.minimize(game_state, agent_Index, depth, alpha, beta)[1]
+            return self.minimize(game_state, agent_index, depth, alpha, beta)[1]
 
-    def maximize(self, game_state, agent_Index, depth, alpha, beta):
-        best_Action = ("max", -float("inf"))
-        for action in game_state.get_legal_actions(agent_Index):
-            succ_Action = (action, self.alpha_beta(game_state.generate_successor(agent_Index, action),
+    def maximize(self, game_state, agent_index, depth, alpha, beta):
+        best_action = ("max", -float("inf"))
+        for action in game_state.get_legal_actions(agent_index):
+            succ_action = (action, self.alpha_beta(game_state.generate_successor(agent_index, action),
                                       (depth + 1) % game_state.get_num_agents(), depth + 1, alpha, beta))
-            best_Action = max(best_Action, succ_Action, key=lambda x: x[1])
-            if best_Action[1] > beta:
-                return best_Action
+            best_action = max(best_action, succ_action, key=lambda x: x[1])
+            if best_action[1] > beta:
+                return best_action
             else:
-                alpha = max(alpha, best_Action[1])
+                alpha = max(alpha, best_action[1])
 
-        return best_Action
+        return best_action
 
-    def minimize(self, game_state, agent_Index, depth, alpha, beta):
-        best_Action = ("min", float("inf"))
-        for action in game_state.get_legal_actions(agent_Index):
-            succ_Action = (action, self.alpha_beta(game_state.generate_successor(agent_Index, action),
+    def minimize(self, game_state, agent_index, depth, alpha, beta):
+        best_action = ("min", float("inf"))
+        for action in game_state.get_legal_actions(agent_index):
+            succ_action = (action, self.alpha_beta(game_state.generate_successor(agent_index, action),
                                       (depth + 1) % game_state.get_num_agents(), depth + 1, alpha, beta))
-            best_Action = min(best_Action, succ_Action, key=lambda x: x[1])
-            if best_Action[1] < alpha:
-                return best_Action
+            best_action = min(best_action, succ_action, key=lambda x: x[1])
+            if best_action[1] < alpha:
+                return best_action
             else:
-                beta = min(beta, best_Action[1])
+                beta = min(beta, best_action[1])
 
-        return best_Action
+        return best_action
         # util.raise_not_defined()
 
 class ExpectimaxAgent(MultiAgentSearchAgent):
