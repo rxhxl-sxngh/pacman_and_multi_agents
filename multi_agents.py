@@ -298,6 +298,13 @@ def better_evaluation_function(current_game_state):
       3. The number of remaining food pellets
       4. The number of remaining capsules
       5. The average distance to the nearest ghost
+      6. The number of scared ghosts
+      7. The average scared timer of ghosts
+
+      Basically, I focused on creating a pacman that favored aggression over safety until ghosts were close, 
+      and then it would prioritize safety.
+      When ghosts were scared, it turned ultra-aggressive. 
+      I used the timer to make sure that Pacman would get less aggressive as the timer ran out.
     """
     "*** YOUR CODE HERE ***"
     # Setup information to be used as arguments in evaluation function
@@ -307,6 +314,8 @@ def better_evaluation_function(current_game_state):
     food_list = current_game_state.get_food().as_list()
     capsules = current_game_state.get_capsules()
     game_score = current_game_state.get_score()
+    scared_ghosts = sum(ghost_state.scared_timer >  0 for ghost_state in current_game_state.get_ghost_states())
+    average_scared_timer = sum(ghost_state.scared_timer for ghost_state in current_game_state.get_ghost_states()) / len(current_game_state.get_ghost_states()) if current_game_state.get_ghost_states() else  0
 
     # Calculating distances
     food_count = len(food_list)
@@ -327,8 +336,8 @@ def better_evaluation_function(current_game_state):
         average_ghost_distance =  0
 
     # Weighted features
-    features = [1.0 / closest_food, game_score, food_count, capsule_count, average_ghost_distance]
-    importance = [2, 10, -10, -5, -5]
+    features = [1.0 / closest_food, game_score, food_count, capsule_count, average_ghost_distance, scared_ghosts, average_scared_timer]
+    importance = [2, 10, 5, -5, -5, 2, 100]
 
     # Calculate the weighted sum of features
     return sum(feature * weight for feature, weight in zip(features, importance))
