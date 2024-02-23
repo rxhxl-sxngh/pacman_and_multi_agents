@@ -208,30 +208,32 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
             return self.minimize(game_state, agent_index, depth, alpha, beta)[1]
 
     def maximize(self, game_state, agent_index, depth, alpha, beta):
-        best_action = ("max", -float("inf"))
+        best_value = -float("inf")
+        best_action = None
         for action in game_state.get_legal_actions(agent_index):
-            succ_action = (action, self.alpha_beta(game_state.generate_successor(agent_index, action),
-                                      (depth + 1) % game_state.get_num_agents(), depth + 1, alpha, beta))
-            best_action = max(best_action, succ_action, key=lambda x: x[1])
-            if best_action[1] > beta:
-                return best_action
-            else:
-                alpha = max(alpha, best_action[1])
-
-        return best_action
+            successor_state = game_state.generate_successor(agent_index, action)
+            value = self.alpha_beta(successor_state, (depth + 1) % game_state.get_num_agents(), depth + 1, alpha, beta)
+            if value > best_value:
+                best_value = value
+                best_action = action
+            if best_value > beta:
+                return best_action, best_value
+            alpha = max(alpha, best_value)
+        return best_action, best_value
 
     def minimize(self, game_state, agent_index, depth, alpha, beta):
-        best_action = ("min", float("inf"))
+        best_value = float("inf")
+        best_action = None
         for action in game_state.get_legal_actions(agent_index):
-            succ_action = (action, self.alpha_beta(game_state.generate_successor(agent_index, action),
-                                      (depth + 1) % game_state.get_num_agents(), depth + 1, alpha, beta))
-            best_action = min(best_action, succ_action, key=lambda x: x[1])
-            if best_action[1] < alpha:
-                return best_action
-            else:
-                beta = min(beta, best_action[1])
-
-        return best_action
+            successor_state = game_state.generate_successor(agent_index, action)
+            value = self.alpha_beta(successor_state, (depth + 1) % game_state.get_num_agents(), depth + 1, alpha, beta)
+            if value < best_value:
+                best_value = value
+                best_action = action
+            if best_value < alpha:
+                return best_action, best_value
+            beta = min(beta, best_value)
+        return best_action, best_value
         # util.raise_not_defined()
 
 class ExpectimaxAgent(MultiAgentSearchAgent):
