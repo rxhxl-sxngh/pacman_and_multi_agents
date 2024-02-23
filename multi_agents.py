@@ -196,38 +196,42 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
           Returns the minimax action using self.depth and self.evaluation_function
         """
         "*** YOUR CODE HERE ***"
-        def minimax(game_state, depth, agent_index):
-            if depth == 0 or game_state.is_win() or game_state.is_lose():
-                return self.evaluation_function(game_state)
+        return self.maximize(game_state, 0, 0, -float("inf"), float("inf"))[0]
 
-            legal_actions = game_state.get_legal_actions(agent_index)
-            if agent_index == 0:  # Pacman's turn (maximize)
-                best_value = float("-inf")
-                for action in legal_actions:
-                    successor_state = game_state.generate_successor(agent_index, action)
-                    value = minimax(successor_state, depth - 1, agent_index + 1)
-                    best_value = max(best_value, value)
-                return best_value
-            else:  # Ghosts' turn (minimize)
-                best_value = float("inf")
-                next_agent_index = (agent_index + 1) % game_state.get_num_agents()
-                for action in legal_actions:
-                    successor_state = game_state.generate_successor(agent_index, action)
-                    value = minimax(successor_state, depth, next_agent_index)
-                    best_value = min(best_value, value)
-                return best_value
+    def alpha_beta(self, game_state, agent_Index, depth, alpha, beta):
+        if depth is self.depth * game_state.get_num_agents() \
+                or game_state.is_lose() or game_state.is_win():
+            return self.evaluation_function(game_state)
+        if agent_Index is 0:
+            return self.maximize(game_state, agent_Index, depth, alpha, beta)[1]
+        else:
+            return self.minimize(game_state, agent_Index, depth, alpha, beta)[1]
 
-        # Call the minimax function for Pacman's turn
-        legal_actions = game_state.get_legal_actions(0)
-        best_action = None
-        best_value = float("-inf")
-        for action in legal_actions:
-            successor_state = game_state.generate_successor(0, action)
-            value = minimax(successor_state, self.depth, 1)
-            if value > best_value:
-                best_value = value
-                best_action = action
-        return best_action
+    def maximize(self, game_state, agent_Index, depth, alpha, beta):
+        best_Action = ("max", -float("inf"))
+        for action in game_state.get_legal_actions(agent_Index):
+            succ_Action = (action, self.alpha_beta(game_state.generate_successor(agent_Index, action),
+                                      (depth + 1) % game_state.get_num_agents(), depth + 1, alpha, beta))
+            best_Action = max(best_Action, succ_Action, key=lambda x: x[1])
+            if best_Action[1] > beta:
+                return best_Action
+            else:
+                alpha = max(alpha, best_Action[1])
+
+        return best_Action
+
+    def minimize(self, game_state, agent_Index, depth, alpha, beta):
+        best_Action = ("min", float("inf"))
+        for action in game_state.get_legal_actions(agent_Index):
+            succ_Action = (action, self.alpha_beta(game_state.generate_successor(agent_Index, action),
+                                      (depth + 1) % game_state.get_num_agents(), depth + 1, alpha, beta))
+            best_Action = min(best_Action, succ_Action, key=lambda x: x[1])
+            if best_Action[1] < alpha:
+                return best_Action
+            else:
+                beta = min(beta, best_Action[1])
+
+        return best_Action
         # util.raise_not_defined()
 
 class ExpectimaxAgent(MultiAgentSearchAgent):
