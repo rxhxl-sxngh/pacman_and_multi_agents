@@ -1,3 +1,4 @@
+
 def create_named_list_class(names):
     """
     Example:
